@@ -1,0 +1,1419 @@
+<!DOCTYPE html>
+<html lang="bn" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Earn Galaxy - Premium Telegram Mini App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        galaxyDark: '#0b061f',
+                        galaxyCard: 'rgba(23, 15, 48, 0.7)',
+                        galaxyBorder: 'rgba(139, 92, 246, 0.3)',
+                        neonPurple: '#a855f7',
+                        neonCyan: '#06b6d4',
+                        neonPink: '#ec4899'
+                    },
+                    boxShadow: {
+                        'neon-purple': '0 0 15px rgba(168, 85, 247, 0.4)',
+                        'neon-cyan': '0 0 15px rgba(6, 182, 212, 0.4)',
+                        'neon-pink': '0 0 15px rgba(236, 72, 153, 0.4)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Hind Siliguri', sans-serif;
+            background: radial-gradient(circle at top, #1a0b36 0%, #060214 100%);
+            overscroll-behavior: none;
+        }
+        .glass-panel {
+            background: rgba(23, 15, 48, 0.65);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        /* Custom animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .floating-element {
+            animation: float 4s ease-in-out infinite;
+        }
+        .spin-wheel-transition {
+            transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        /* Hide scrollbars */
+        ::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col select-none overflow-x-hidden">
+
+    <!-- Fake/Simulated Push Notification -->
+    <div id="toast-notification" class="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-11/12 max-w-sm glass-panel p-3 rounded-xl shadow-neon-purple flex items-center space-x-3 transition-all duration-300 opacity-0 pointer-events-none translate-y-[-20px]">
+        <div class="p-2 bg-purple-900/50 rounded-lg text-neon-cyan" id="toast-icon">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        </div>
+        <div>
+            <h4 class="text-xs font-bold text-gray-400" id="toast-title">Earn Galaxy Alert</h4>
+            <p class="text-sm text-white font-medium" id="toast-msg">নতুন অফার বা নোটিফিকেশন!</p>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div class="flex-1 flex flex-col max-w-md mx-auto w-full relative pb-24">
+        
+        <!-- TOP HEADER -->
+        <header class="p-4 flex items-center justify-between glass-panel sticky top-0 z-40 border-b border-purple-900/30 rounded-b-2xl">
+            <!-- Left: Profile Icon -->
+            <button onclick="openProfilePopup()" class="flex items-center space-x-2 bg-purple-950/50 p-1.5 pr-3 rounded-full border border-purple-500/20 active:scale-95 transition-transform">
+                <div class="w-8 h-8 rounded-full overflow-hidden border border-neon-cyan flex items-center justify-center bg-purple-900">
+                    <img id="header-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=GalaxyUser" alt="Avatar" class="w-full h-full">
+                </div>
+                <div class="text-left">
+                    <p class="text-[10px] text-gray-400 leading-none">স্বাগতম</p>
+                    <p class="text-xs font-bold text-white truncate max-w-[80px]" id="header-name">Galaxy Explorer</p>
+                </div>
+            </button>
+
+            <!-- Center: Coin Balance -->
+            <div class="flex items-center space-x-1.5 bg-cyan-950/40 px-3.5 py-1.5 rounded-full border border-cyan-500/30 shadow-neon-cyan">
+                <svg class="w-5 h-5 text-yellow-400 animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M8.433 7.418c.554-.589 1.448-.589 2.002 0l.207.22 1.258-1.258-.207-.22a3.78 3.78 0 00-5.338 0l-.207.22L7.4 7.638l.207-.22zM15.75 10c0-3.176-2.574-5.75-5.75-5.75S4.25 6.824 4.25 10 6.824 15.75 10 15.75 15.75 13.176 15.75 10zM10 1.25C5.168 1.25 1.25 5.168 1.25 10s3.918 8.75 8.75 8.75 8.75-3.918 8.75-8.75S14.832 1.25 10 1.25z"/>
+                </svg>
+                <span id="header-balance" class="text-base font-extrabold tracking-wide text-cyan-200">0.00</span>
+                <span class="text-[10px] text-cyan-400 font-bold">কয়েন</span>
+            </div>
+
+            <!-- Right: Wallet Short Cut -->
+            <button onclick="window.location.hash = '#wallet'" class="p-2 bg-purple-950/60 hover:bg-purple-900/60 rounded-full border border-purple-500/30 text-neon-pink active:scale-95 transition-transform">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+            </button>
+        </header>
+
+        <!-- VIEWS WRAPPER -->
+        <main class="flex-1 p-4" id="view-container">
+            
+            <!-- PAGE 1: HOME VIEW -->
+            <section id="home-view" class="space-y-6 hidden">
+                <!-- Native Banner 1 Simulation -->
+                <div class="glass-panel p-3 rounded-2xl border border-dashed border-neon-cyan/40 bg-gradient-to-r from-purple-950/40 to-cyan-950/40 relative overflow-hidden flex items-center justify-between">
+                    <div class="z-10">
+                        <span class="text-[8px] uppercase tracking-wider bg-cyan-500/20 text-cyan-300 px-1.5 py-0.5 rounded font-bold border border-cyan-400/30">Sponsored Ad</span>
+                        <h4 class="text-xs font-bold text-white mt-1">Galaxy Strategy Game</h4>
+                        <p class="text-[10px] text-gray-400">খেলুন এবং প্রতিদিন ৫০০ কয়েন ফ্রিতে জিতে নিন!</p>
+                    </div>
+                    <button onclick="simulateAdClick('banner-1')" class="z-10 bg-cyan-500 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg shadow-neon-cyan active:scale-95 transition-transform shrink-0">প্লে করুন</button>
+                    <div class="absolute -right-6 -bottom-6 w-20 h-20 bg-cyan-500/10 blur-xl rounded-full"></div>
+                </div>
+
+                <!-- Auto Spin Section -->
+                <div class="glass-panel p-5 rounded-3xl relative overflow-hidden flex flex-col items-center">
+                    <div class="absolute top-3 left-3 flex items-center space-x-1.5">
+                        <span id="auto-spin-badge" class="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                        <span id="auto-spin-status-lbl" class="text-[10px] text-red-400 font-bold uppercase tracking-wider">অটো স্পিন বন্ধ</span>
+                    </div>
+
+                    <!-- Spin Wheel Canvas/SVG -->
+                    <div class="relative my-6 flex items-center justify-center w-64 h-64">
+                        <!-- Pointer Arrow -->
+                        <div class="absolute top-0 z-30 transform -translate-y-2 text-neon-pink">
+                            <svg class="w-8 h-8 fill-current filter drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" viewBox="0 0 24 24">
+                                <path d="M12 21l-8-14h16z"/>
+                            </svg>
+                        </div>
+                        
+                        <!-- Wheel Body -->
+                        <div id="spin-wheel-svg" class="w-full h-full rounded-full border-4 border-purple-500/40 shadow-neon-purple overflow-hidden flex items-center justify-center">
+                            <!-- We can use a highly styled SVG with 10 segments -->
+                            <svg class="w-full h-full transform rotate-0 origin-center" viewBox="0 0 100 100" id="wheel-svg-element">
+                                <!-- Background segments -->
+                                <g transform="translate(50,50)">
+                                    <!-- 10 segments of 36 deg each -->
+                                    <!-- Slice 1 (0.01) -->
+                                    <path d="M0,0 L0,-50 A50,50 0 0,1 29.38,-40.45 Z" fill="#2d1354" stroke="#4c1d95" stroke-width="0.5"/>
+                                    <!-- Slice 2 (0.1) -->
+                                    <path d="M0,0 L29.38,-40.45 A50,50 0 0,1 47.55,-15.45 Z" fill="#1e1b4b" stroke="#4c1d95" stroke-width="0.5"/>
+                                    <!-- Slice 3 (0.2) -->
+                                    <path d="M0,0 L47.55,-15.45 A50,50 0 0,1 47.55,15.45 Z" fill="#2d1354" stroke="#4c1d95" stroke-width="0.5"/>
+                                    <!-- Slice 4 (0.3) -->
+                                    <path d="M0,0 L47.55,15.45 A50,50 0 0,1 29.38,40.45 Z" fill="#1e1b4b" stroke="#4c1d95" stroke-width="0.5"/>
+                                    <!-- Slice 5 (0.4) -->
+                                    <path d="M0,0 L29.38,40.45 A50,50 0 0,1 0,50 Z" fill="#2d1354" stroke="#4c1d95" stroke-width="0.5"/>
+                                    <!-- Slice 6 (0.5) -->
+                                    <path d="M0,0 L0,50 A50,50 0 0,1 -29.38,40.45 Z" fill="#1e1b4b" stroke="#4c1d95" stroke-width="0.5"/>
+                                    <!-- Slice 7 (0.6) -->
+                                    <path d="M0,0 L-29.38,40.45 A50,50 0 0,1 -47.55,15.45 Z" fill="#2d1354" stroke="#4c1d95" stroke-width="0.5"/>
+                                    <!-- Slice 8 (0.7) -->
+                                    <path d="M0,0 L-47.55,15.45 A50,50 0 0,1 -47.55,-15.45 Z" fill="#1e1b4b" stroke="#4c1d95" stroke-width="0.5"/>
+                                    <!-- Slice 9 (0.8) -->
+                                    <path d="M0,0 L-47.55,-15.45 A50,50 0 0,1 -29.38,-40.45 Z" fill="#2d1354" stroke="#4c1d95" stroke-width="0.5"/>
+                                    <!-- Slice 10 (0.9) -->
+                                    <path d="M0,0 L-29.38,-40.45 A50,50 0 0,1 0,-50 Z" fill="#1e1b4b" stroke="#4c1d95" stroke-width="0.5"/>
+                                </g>
+                                <!-- Labels rendered programmatically for proper alignment -->
+                                <g id="labels-container" transform="translate(50,50)" class="text-[4px] font-extrabold fill-slate-200 pointer-events-none text-center">
+                                    <text transform="rotate(18,0,0) translate(0, -38) rotate(-18)">0.01</text>
+                                    <text transform="rotate(54,0,0) translate(0, -38) rotate(-54)">0.1</text>
+                                    <text transform="rotate(90,0,0) translate(0, -38) rotate(-90)">0.2</text>
+                                    <text transform="rotate(126,0,0) translate(0, -38) rotate(-126)">0.3</text>
+                                    <text transform="rotate(162,0,0) translate(0, -38) rotate(-162)">0.4</text>
+                                    <text transform="rotate(198,0,0) translate(0, -38) rotate(-198)">0.5</text>
+                                    <text transform="rotate(234,0,0) translate(0, -38) rotate(-234)">0.6</text>
+                                    <text transform="rotate(270,0,0) translate(0, -38) rotate(-270)">0.7</text>
+                                    <text transform="rotate(306,0,0) translate(0, -38) rotate(-306)">0.8</text>
+                                    <text transform="rotate(342,0,0) translate(0, -38) rotate(-342)">0.9</text>
+                                </g>
+                                <!-- Center core -->
+                                <circle cx="50" cy="50" r="10" fill="#1e1b4b" stroke="#a855f7" stroke-width="2"/>
+                                <circle cx="50" cy="50" r="5" fill="#a855f7"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- Auto Spin HUD -->
+                    <div class="grid grid-cols-3 gap-3 w-full bg-purple-950/30 p-3 rounded-2xl border border-purple-500/10 mb-5">
+                        <div class="text-center">
+                            <p class="text-[10px] text-gray-400">মোট স্পিন</p>
+                            <p id="hud-total-spins" class="text-sm font-extrabold text-white">0</p>
+                        </div>
+                        <div class="text-center border-x border-purple-500/10">
+                            <p class="text-[10px] text-gray-400">সেশন আয়</p>
+                            <p id="hud-session-earn" class="text-sm font-extrabold text-neon-cyan">0.00</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-[10px] text-gray-400">VIP লেভেল</p>
+                            <p id="hud-vip-level" class="text-sm font-extrabold text-neon-pink">Bronze</p>
+                        </div>
+                    </div>
+
+                    <!-- Spin Controls -->
+                    <div class="flex items-center space-x-3 w-full">
+                        <button id="btn-spin-start" onclick="startAutoSpinLoop()" class="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-2xl shadow-neon-purple active:scale-95 transition-all text-sm flex items-center justify-center space-x-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <span>অটো স্পিন</span>
+                        </button>
+                        
+                        <button id="btn-spin-stop" onclick="stopAutoSpinLoop()" disabled class="bg-red-500/20 text-red-400 border border-red-500/30 font-bold px-4 py-3.5 rounded-2xl hover:bg-red-500/30 active:scale-95 transition-all text-sm disabled:opacity-50 disabled:pointer-events-none">
+                            স্টপ
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Native Banner 2 Simulation -->
+                <div class="glass-panel p-3 rounded-2xl border border-dashed border-neon-purple/40 bg-purple-950/20 flex items-center justify-between">
+                    <div>
+                        <span class="text-[8px] uppercase tracking-wider bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded font-bold border border-purple-400/30">Native Ad 2</span>
+                        <h4 class="text-xs font-bold text-white mt-1">Earn Crypto Instantly</h4>
+                        <p class="text-[10px] text-gray-400">১০০০ কয়েন কনভার্ট করে বিকাশ রিকোয়েস্ট দিন।</p>
+                    </div>
+                    <button onclick="simulateAdClick('banner-2')" class="bg-purple-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-transform">জয়েন করুন</button>
+                </div>
+
+                <!-- 7 Days Daily Reward System -->
+                <div class="glass-panel p-5 rounded-3xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <svg class="w-5 h-5 text-neon-cyan" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <h3 class="text-sm font-extrabold tracking-wide">ডেইলি রিওয়ার্ড (৭ দিন)</h3>
+                        </div>
+                        <span class="text-[10px] text-neon-pink font-extrabold uppercase">Daily Gift</span>
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2.5" id="daily-grid">
+                        <!-- Days 1-7 dynamically rendered inside JS -->
+                    </div>
+                </div>
+
+                <!-- Native Banner 3 Simulation -->
+                <div class="glass-panel p-3 rounded-2xl border border-dashed border-neon-pink/40 bg-purple-950/20 flex items-center justify-between">
+                    <div>
+                        <span class="text-[8px] uppercase tracking-wider bg-pink-500/20 text-pink-300 px-1.5 py-0.5 rounded font-bold border border-pink-400/30">Adsterra Native 3</span>
+                        <h4 class="text-xs font-bold text-white mt-1">VIP Pass Free Upgrade</h4>
+                        <p class="text-[10px] text-gray-400">প্রতি স্পিনে ২ গুণ বেশি আর্নিং বোনাস!</p>
+                    </div>
+                    <button onclick="simulateAdClick('banner-3')" class="bg-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-transform">লগইন</button>
+                </div>
+
+                <!-- Mystery Box Section (Interactive Mini Game) -->
+                <div class="glass-panel p-4 rounded-2xl flex items-center justify-between relative overflow-hidden bg-gradient-to-r from-purple-950/50 to-emerald-950/30">
+                    <div class="flex items-center space-x-3 z-10">
+                        <div class="w-12 h-12 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-center text-emerald-400 text-2xl animate-bounce">
+                            🎁
+                        </div>
+                        <div>
+                            <h4 class="text-xs font-extrabold text-white">লাকি মিস্ট্রি বক্স</h4>
+                            <p class="text-[10px] text-gray-400" id="mystery-box-timer">রেডি আছে! ওয়ান ক্লিক ওফেন করুন</p>
+                        </div>
+                    </div>
+                    <button onclick="claimMysteryBox()" id="btn-mystery-box" class="z-10 bg-emerald-500 text-slate-950 text-xs font-bold px-3 py-2 rounded-xl shadow-neon-cyan active:scale-95 transition-all">খুলুন</button>
+                </div>
+            </section>
+
+            <!-- PAGE 2: REFERRAL VIEW -->
+            <section id="referral-view" class="space-y-6 hidden">
+                <!-- Top Banner Ad Simulation -->
+                <div class="glass-panel p-3 rounded-2xl border border-dashed border-neon-cyan/40 bg-purple-950/20 flex items-center justify-between">
+                    <div>
+                        <span class="text-[8px] uppercase tracking-wider bg-cyan-500/20 text-cyan-300 px-1.5 py-0.5 rounded font-bold border border-cyan-400/30">Ref Banner Ad</span>
+                        <h4 class="text-xs font-bold text-white mt-1">Invites = Double Points</h4>
+                        <p class="text-[10px] text-gray-400">৫ জন বন্ধুকে আমন্ত্রন জানিয়ে প্রথম রিওয়ার্ড ক্লেইম করুন!</p>
+                    </div>
+                    <button onclick="simulateAdClick('ref-top')" class="bg-cyan-600 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-transform">জানুন</button>
+                </div>
+
+                <!-- Referral Stats Card -->
+                <div class="glass-panel p-5 rounded-3xl relative overflow-hidden">
+                    <div class="absolute right-0 top-0 w-24 h-24 bg-purple-500/10 blur-2xl rounded-full"></div>
+                    <h3 class="text-sm font-extrabold mb-4">রেফারেল ওভারভিউ</h3>
+                    
+                    <div class="grid grid-cols-3 gap-3 mb-5">
+                        <div class="bg-purple-950/40 p-3 rounded-xl border border-purple-500/10 text-center">
+                            <p class="text-[10px] text-gray-400">মোট রেফারেল</p>
+                            <p id="ref-total" class="text-base font-extrabold text-white">0</p>
+                        </div>
+                        <div class="bg-purple-950/40 p-3 rounded-xl border border-purple-500/10 text-center">
+                            <p class="text-[10px] text-gray-400">সক্রিয় রেফারেল</p>
+                            <p id="ref-active" class="text-base font-extrabold text-neon-cyan">0</p>
+                        </div>
+                        <div class="bg-purple-950/40 p-3 rounded-xl border border-purple-500/10 text-center">
+                            <p class="text-[10px] text-gray-400">রেফারেল আয়</p>
+                            <p id="ref-earn" class="text-base font-extrabold text-neon-pink">0</p>
+                        </div>
+                    </div>
+
+                    <!-- Invite Links Section -->
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-[11px] text-gray-400 font-bold block mb-1">আপনার ইউনিক রেফারেল লিঙ্ক:</label>
+                            <div class="flex space-x-2">
+                                <input type="text" id="referral-input-url" readonly value="https://yourapp.com/?ref=demo_user_id" class="flex-1 bg-purple-950/60 border border-purple-500/20 rounded-xl px-3 py-2 text-xs text-purple-300 focus:outline-none">
+                                <button onclick="copyReferralLink()" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold px-3 py-2 rounded-xl active:scale-95 transition-transform">কপি</button>
+                            </div>
+                        </div>
+
+                        <div class="flex space-x-2">
+                            <button onclick="shareOnTelegram()" class="flex-1 bg-gradient-to-r from-sky-500 to-indigo-600 text-white text-xs font-bold py-2.5 rounded-xl active:scale-95 transition-transform flex items-center justify-center space-x-1.5">
+                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.24-5.54 3.65-.52.36-.97.53-1.34.52-.41-.01-1.21-.23-1.8-.42-.72-.24-1.3-.37-1.25-.79.03-.22.33-.44.9-.68 3.53-1.53 5.89-2.54 7.07-3.03 3.36-1.39 4.06-1.63 4.51-1.64.1 0 .33.02.48.15.12.1.16.24.18.34-.01.07 0 .14-.02.21z"/></svg>
+                                <span>টেলিগ্রামে শেয়ার করুন</span>
+                            </button>
+                            
+                            <button onclick="toggleQRCode()" class="bg-purple-950/50 border border-purple-500/20 text-purple-300 p-2.5 rounded-xl active:scale-95 transition-transform">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Simulated QR Code Modal-box container (Toggled on click) -->
+                <div id="qr-code-box" class="glass-panel p-5 rounded-3xl hidden flex flex-col items-center justify-center text-center space-y-3">
+                    <h4 class="text-xs font-bold text-gray-300">স্ক্যান করে আমন্ত্রন জানান</h4>
+                    <div class="bg-white p-3 rounded-2xl w-36 h-36 flex items-center justify-center">
+                        <!-- Custom dynamic SVG simulated QR code -->
+                        <svg class="w-32 h-32 text-slate-900" viewBox="0 0 100 100">
+                            <!-- QR Corner Blocks -->
+                            <rect x="0" y="0" width="30" height="30" fill="currentColor" />
+                            <rect x="5" y="5" width="20" height="20" fill="white" />
+                            <rect x="10" y="10" width="10" height="10" fill="currentColor" />
+                            
+                            <rect x="70" y="0" width="30" height="30" fill="currentColor" />
+                            <rect x="75" y="5" width="20" height="20" fill="white" />
+                            <rect x="80" y="10" width="10" height="10" fill="currentColor" />
+                            
+                            <rect x="0" y="70" width="30" height="30" fill="currentColor" />
+                            <rect x="5" y="75" width="20" height="20" fill="white" />
+                            <rect x="10" y="80" width="10" height="10" fill="currentColor" />
+                            
+                            <!-- Middle random pixel mockups -->
+                            <rect x="40" y="10" width="10" height="15" fill="currentColor" />
+                            <rect x="55" y="5" width="10" height="10" fill="currentColor" />
+                            <rect x="45" y="35" width="20" height="10" fill="currentColor" />
+                            <rect x="10" y="45" width="15" height="15" fill="currentColor" />
+                            <rect x="75" y="45" width="15" height="20" fill="currentColor" />
+                            <rect x="40" y="75" width="15" height="15" fill="currentColor" />
+                            <rect x="60" y="65" width="10" height="10" fill="currentColor" />
+                        </svg>
+                    </div>
+                    <p class="text-[10px] text-gray-400">আপনার বন্ধুরা কিউআর স্ক্যান করলেই ডাইরেক্ট রেফার লিংকে যুক্ত হবে।</p>
+                </div>
+
+                <!-- Referral Milestones & Progress -->
+                <div class="glass-panel p-5 rounded-3xl space-y-4">
+                    <h3 class="text-sm font-extrabold flex items-center space-x-2">
+                        <span>🏆</span>
+                        <span>রেফারেল মাইলস্টোন বোনাস</span>
+                    </h3>
+                    
+                    <div class="space-y-3">
+                        <!-- Milestone 1 -->
+                        <div class="bg-purple-950/20 p-3 rounded-xl border border-purple-500/10 flex items-center justify-between">
+                            <div>
+                                <h4 class="text-xs font-bold text-white">৫ জন সক্রিয় রেফার</h4>
+                                <p class="text-[10px] text-purple-400 font-bold">+১,০০০ বোনাস কয়েন</p>
+                            </div>
+                            <button onclick="claimMilestone(5, 1000)" id="milestone-btn-5" class="bg-purple-600/30 text-purple-300 text-xs px-3 py-1.5 rounded-lg border border-purple-500/20 hover:bg-purple-600/50">ক্লেম</button>
+                        </div>
+                        
+                        <!-- Milestone 2 -->
+                        <div class="bg-purple-950/20 p-3 rounded-xl border border-purple-500/10 flex items-center justify-between">
+                            <div>
+                                <h4 class="text-xs font-bold text-white">১০ জন সক্রিয় রেফার</h4>
+                                <p class="text-[10px] text-cyan-400 font-bold">ভিআইপি সিলভার ব্যাজ + ৩,০০০ কয়েন</p>
+                            </div>
+                            <button onclick="claimMilestone(10, 3000)" id="milestone-btn-10" class="bg-purple-600/30 text-purple-300 text-xs px-3 py-1.5 rounded-lg border border-purple-500/20 hover:bg-purple-600/50">ক্লেম</button>
+                        </div>
+                        
+                        <!-- Milestone 3 -->
+                        <div class="bg-purple-950/20 p-3 rounded-xl border border-purple-500/10 flex items-center justify-between">
+                            <div>
+                                <h4 class="text-xs font-bold text-white">২৫ জন সক্রিয় রেফার</h4>
+                                <p class="text-[10px] text-pink-400 font-bold">ডায়মন্ড প্রো স্ট্যাটাস + ১০,০০০ কয়েন</p>
+                            </div>
+                            <button onclick="claimMilestone(25, 10000)" id="milestone-btn-25" class="bg-purple-600/30 text-purple-300 text-xs px-3 py-1.5 rounded-lg border border-purple-500/20 hover:bg-purple-600/50">ক্লেম</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Referral Leaderboard (Simulated Top list) -->
+                <div class="glass-panel p-5 rounded-3xl space-y-4">
+                    <h3 class="text-sm font-extrabold flex items-center space-x-2">
+                        <span>🌟</span>
+                        <span>টপ রেফারার লিডারবোর্ড</span>
+                    </h3>
+                    
+                    <div class="space-y-2.5" id="leaderboard-ref-list">
+                        <!-- Dynamically filled in JS -->
+                    </div>
+                </div>
+
+                <!-- Bottom Banner Ad 3 -->
+                <div class="glass-panel p-3 rounded-2xl border border-dashed border-neon-pink/40 bg-purple-950/20 flex items-center justify-between">
+                    <div>
+                        <span class="text-[8px] uppercase tracking-wider bg-pink-500/20 text-pink-300 px-1.5 py-0.5 rounded font-bold border border-pink-400/30">Adsterra Bottom</span>
+                        <h4 class="text-xs font-bold text-white mt-1">Unlock VIP Status Now</h4>
+                        <p class="text-[10px] text-gray-400">ভিআইপি মেম্বারশিপে কোন এড ছাড়া উইথড্রয়াল পাবেন!</p>
+                    </div>
+                    <button onclick="simulateAdClick('ref-bottom')" class="bg-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-transform">লগইন</button>
+                </div>
+            </section>
+
+            <!-- PAGE 3: WALLET VIEW -->
+            <section id="wallet-view" class="space-y-6 hidden">
+                <!-- Top Banner Ad Simulation -->
+                <div class="glass-panel p-3 rounded-2xl border border-dashed border-neon-cyan/40 bg-purple-950/20 flex items-center justify-between">
+                    <div>
+                        <span class="text-[8px] uppercase tracking-wider bg-cyan-500/20 text-cyan-300 px-1.5 py-0.5 rounded font-bold border border-cyan-400/30">Wallet Ad Banner</span>
+                        <h4 class="text-xs font-bold text-white mt-1">Earn 100 BDT in 1 Minute</h4>
+                        <p class="text-[10px] text-gray-400">পারফেক্ট মোবাইল গেমিং টুর্নামেন্টে জয়েন করুন!</p>
+                    </div>
+                    <button onclick="simulateAdClick('wallet-top')" class="bg-cyan-600 text-slate-950 text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-transform">প্লে করুন</button>
+                </div>
+
+                <!-- Wallet Balances Overview -->
+                <div class="glass-panel p-5 rounded-3xl relative overflow-hidden bg-gradient-to-br from-indigo-950/50 to-purple-950/30">
+                    <div class="absolute right-0 top-0 w-32 h-32 bg-indigo-500/10 blur-2xl rounded-full"></div>
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-purple-400 mb-2">Galaxy Wallet</h3>
+                    
+                    <div class="mb-5">
+                        <p class="text-3xl font-extrabold tracking-wide text-white flex items-baseline space-x-1">
+                            <span id="wallet-current-bal">0.00</span>
+                            <span class="text-xs font-bold text-neon-cyan">কয়েন</span>
+                        </p>
+                        <p class="text-[10px] text-gray-400 mt-1" id="wallet-bdt-val">সমমূল্য: ≈ ০.০০ টাকা / ০.০০ USDT</p>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 border-t border-purple-500/10 pt-4 text-center">
+                        <div>
+                            <p class="text-[9px] text-gray-400">মোট আর্নিং</p>
+                            <p id="wallet-total-earned" class="text-xs font-extrabold text-white">0.00</p>
+                        </div>
+                        <div class="border-x border-purple-500/10">
+                            <p class="text-[9px] text-gray-400">মোট উইথড্র</p>
+                            <p id="wallet-total-withdrawn" class="text-xs font-extrabold text-neon-cyan">0.00</p>
+                        </div>
+                        <div>
+                            <p class="text-[9px] text-gray-400">পেন্ডিং রিকোয়েস্ট</p>
+                            <p id="wallet-pending-reqs" class="text-xs font-extrabold text-neon-pink">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coin Converter / Exchange System -->
+                <div class="glass-panel p-5 rounded-3xl space-y-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-extrabold flex items-center space-x-1.5">
+                            <span>🔄</span>
+                            <span>এক্সচেঞ্জ কয়েন (কনভার্টার)</span>
+                        </h3>
+                        <span class="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 px-1.5 py-0.5 rounded font-bold">১০,০০০ কয়েন = ৫ টাকা</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-3">
+                            <input type="number" id="exchange-coins-input" placeholder="কয়েন সংখ্যা (যেমন: ১০০০০)" class="flex-1 bg-purple-950/50 border border-purple-500/20 rounded-xl px-3.5 py-2.5 text-xs text-purple-300 focus:outline-none focus:border-neon-cyan">
+                            <span class="text-xs text-purple-400">➔</span>
+                            <div class="bg-purple-950/80 border border-purple-500/20 rounded-xl px-4 py-2.5 text-xs font-bold text-neon-cyan min-w-[70px] text-center" id="exchange-bdt-preview">
+                                ০.০০ ৳
+                            </div>
+                        </div>
+
+                        <p class="text-[10px] text-red-400" id="exchange-error-msg"></p>
+
+                        <button onclick="startExchangeCycle()" class="w-full bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-slate-950 font-bold py-2.5 rounded-xl text-xs active:scale-95 transition-transform">
+                            কয়েন কনভার্ট করুন (৫টি এড সাইকেল লাগবে)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Withdraw System Form -->
+                <div class="glass-panel p-5 rounded-3xl space-y-4">
+                    <h3 class="text-sm font-extrabold flex items-center space-x-1.5">
+                        <span>💳</span>
+                        <span>রিয়েল উইথড্রয়াল রিকোয়েস্ট</span>
+                    </h3>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-[10px] text-gray-400 font-bold block mb-1">পদ্ধতি নির্বাচন করুন:</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button onclick="selectWithdrawMethod('bkash')" id="method-bkash" class="py-2.5 rounded-xl text-xs font-bold border border-purple-500/20 bg-purple-950/20 text-gray-300 hover:bg-purple-900/30 transition-all">Bkash</button>
+                                <button onclick="selectWithdrawMethod('nagad')" id="method-nagad" class="py-2.5 rounded-xl text-xs font-bold border border-purple-500/20 bg-purple-950/20 text-gray-300 hover:bg-purple-900/30 transition-all">Nagad</button>
+                                <button onclick="selectWithdrawMethod('usdt')" id="method-usdt" class="py-2.5 rounded-xl text-xs font-bold border border-purple-500/20 bg-purple-950/20 text-gray-300 hover:bg-purple-900/30 transition-all">USDT TRC20</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] text-gray-400 font-bold block mb-1">মোবাইল নাম্বার বা ওয়ালেট এড্রেস:</label>
+                            <input type="text" id="withdraw-address" placeholder="নাম্বার বা এড্রেস দিন" class="w-full bg-purple-950/50 border border-purple-500/20 rounded-xl px-3.5 py-2.5 text-xs text-purple-300 focus:outline-none focus:border-neon-pink">
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] text-gray-400 font-bold block mb-1">উইথড্র পরিমাণ (মিনিমাম ১০,০০০,০০০ কয়েন):</label>
+                            <input type="number" id="withdraw-amount" placeholder="কয়েন সংখ্যা" class="w-full bg-purple-950/50 border border-purple-500/20 rounded-xl px-3.5 py-2.5 text-xs text-purple-300 focus:outline-none focus:border-neon-pink">
+                        </div>
+
+                        <div class="p-3 bg-purple-950/30 rounded-xl border border-purple-500/10 space-y-1">
+                            <p class="text-[9px] text-purple-400 font-bold">রিকোয়ারমেন্ট চেকলিস্ট:</p>
+                            <div class="flex justify-between items-center text-[9px]">
+                                <span class="text-gray-400">• মিনিমাম ১০,০০০,০০০ কয়েন</span>
+                                <span id="req-coin-chk" class="text-red-400 font-bold">❌ অপূর্ণ</span>
+                            </div>
+                            <div class="flex justify-between items-center text-[9px]">
+                                <span class="text-gray-400">• মিনিমাম ১০টি এড কমপ্লিশন</span>
+                                <span id="req-ad-chk" class="text-red-400 font-bold">❌ অপূর্ণ (০/১০)</span>
+                            </div>
+                            <div class="flex justify-between items-center text-[9px]">
+                                <span class="text-gray-400">• মিনিমাম ৭টি ভ্যালিড রেফারেল</span>
+                                <span id="req-ref-chk" class="text-red-400 font-bold">❌ অপূর্ণ (০/৭)</span>
+                            </div>
+                        </div>
+
+                        <button onclick="submitWithdrawRequest()" class="w-full bg-gradient-to-r from-neon-pink to-purple-600 text-white font-bold py-3 rounded-xl text-xs shadow-neon-pink active:scale-95 transition-transform">
+                            উইথড্র করুন (১৫সে + ১৫সে সিকোয়েন্সিয়াল এড)
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Bottom Banner Ad 3 Simulation -->
+                <div class="glass-panel p-3 rounded-2xl border border-dashed border-neon-pink/40 bg-purple-950/20 flex items-center justify-between">
+                    <div>
+                        <span class="text-[8px] uppercase tracking-wider bg-pink-500/20 text-pink-300 px-1.5 py-0.5 rounded font-bold border border-pink-400/30">Adsterra Wallet Bottom</span>
+                        <h4 class="text-xs font-bold text-white mt-1">Super Spin Wheel Boost</h4>
+                        <p class="text-[10px] text-gray-400">১টি এড কমপ্লিট করুন, পান ইনস্ট্যান্ট বোনাস ১০ গুণ!</p>
+                    </div>
+                    <button onclick="simulateAdClick('wallet-bottom')" class="bg-pink-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-transform">প্লে করুন</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- BOTTOM NAVIGATION MENU -->
+        <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto z-40 bg-galaxyDark/90 backdrop-blur-md border-t border-purple-900/30 rounded-t-3xl shadow-neon-purple flex items-center justify-around py-3 px-4">
+            <!-- Home -->
+            <button onclick="navigateTab('home')" id="nav-home" class="flex flex-col items-center justify-center space-y-1 text-gray-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6 nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
+                <span class="text-[10px] font-bold">হোম</span>
+            </button>
+
+            <!-- Referral -->
+            <button onclick="navigateTab('referral')" id="nav-referral" class="flex flex-col items-center justify-center space-y-1 text-gray-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6 nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                <span class="text-[10px] font-bold">রেফার</span>
+            </button>
+
+            <!-- Wallet -->
+            <button onclick="navigateTab('wallet')" id="nav-wallet" class="flex flex-col items-center justify-center space-y-1 text-gray-400 hover:text-white transition-colors">
+                <svg class="w-6 h-6 nav-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                <span class="text-[10px] font-bold">ওয়ালেট</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- POPUP 1: USER PROFILE MODAL -->
+    <div id="profile-popup" class="fixed inset-0 z-50 flex items-center justify-center px-4 bg-slate-950/80 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-panel p-6 rounded-3xl w-full max-w-sm space-y-4 shadow-neon-cyan border border-cyan-500/20">
+            <div class="flex justify-between items-center border-b border-purple-500/10 pb-3">
+                <h3 class="text-sm font-extrabold text-neon-cyan flex items-center space-x-2">
+                    <span>🛸</span>
+                    <span>স্পেস আইডি প্রোফাইল</span>
+                </h3>
+                <button onclick="closeProfilePopup()" class="text-gray-400 hover:text-white text-sm">✖</button>
+            </div>
+
+            <!-- Profile Info Content -->
+            <div class="flex items-center space-x-3.5 bg-purple-950/30 p-3 rounded-2xl">
+                <div class="w-14 h-14 rounded-full border-2 border-neon-cyan overflow-hidden bg-purple-900">
+                    <img id="profile-modal-avatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=GalaxyUser" alt="Avatar" class="w-full h-full">
+                </div>
+                <div>
+                    <h4 id="profile-modal-name" class="text-sm font-bold text-white">Guest User</h4>
+                    <p id="profile-modal-username" class="text-xs text-purple-400">@guest_galaxy</p>
+                </div>
+            </div>
+
+            <div class="space-y-2 text-xs">
+                <div class="flex justify-between py-1.5 border-b border-purple-500/5">
+                    <span class="text-gray-400">ইউজার আইডি:</span>
+                    <span id="profile-modal-id" class="text-white font-mono">12345678</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-purple-500/5">
+                    <span class="text-gray-400">যোগদানের তারিখ:</span>
+                    <span id="profile-modal-join-date" class="text-white">১২ মার্চ ২০২৬</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-purple-500/5">
+                    <span class="text-gray-400">মোট উপার্জিত কয়েন:</span>
+                    <span id="profile-modal-total-earned" class="text-neon-cyan font-bold">০.০০</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-purple-500/5">
+                    <span class="text-gray-400">রেফারেল সংখ্যা:</span>
+                    <span id="profile-modal-ref-count" class="text-neon-pink font-bold">০</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-purple-500/5">
+                    <span class="text-gray-400">মোট স্পিন সংখ্যা:</span>
+                    <span id="profile-modal-spin-count" class="text-white">০ বার</span>
+                </div>
+                <div class="flex justify-between py-1.5 border-b border-purple-500/5">
+                    <span class="text-gray-400">ভিআইপি স্ট্যাটাস:</span>
+                    <span id="profile-modal-vip-badge" class="text-yellow-400 font-bold uppercase tracking-wider">BRONZE</span>
+                </div>
+            </div>
+
+            <!-- Close and Sound controls inside profile -->
+            <div class="flex items-center justify-between pt-3 border-t border-purple-500/10">
+                <span class="text-xs text-gray-400">সাউন্ড এফেক্টস:</span>
+                <button onclick="toggleSoundSetting()" id="btn-sound-toggle" class="bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 px-3 py-1 rounded-xl text-xs font-bold">
+                    সক্ষম (ON)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- POPUP 2: FULLSCREEN ADSTERRA AD SIMULATOR OVERLAY -->
+    <div id="ad-simulation-overlay" class="fixed inset-0 z-50 bg-slate-950 flex flex-col items-center justify-center p-6 opacity-0 pointer-events-none transition-all duration-300">
+        <!-- Inside mock browser wrapper -->
+        <div class="w-full max-w-sm flex-1 flex flex-col justify-between bg-[#070415] border border-purple-500/20 rounded-3xl overflow-hidden relative shadow-neon-purple my-6">
+            <!-- Mock Web Address Bar -->
+            <div class="bg-purple-950/60 px-4 py-2.5 flex items-center justify-between border-b border-purple-500/15">
+                <div class="flex items-center space-x-1">
+                    <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-yellow-500"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
+                </div>
+                <div class="bg-slate-950/70 text-[9px] text-gray-400 px-3 py-0.5 rounded-full truncate font-mono max-w-[180px]">
+                    https://adsterra-direct-link.com/7438927493/show
+                </div>
+                <div class="text-xs text-gray-400 select-none">🔄</div>
+            </div>
+
+            <!-- Ad Creative Screen -->
+            <div class="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-6">
+                <!-- Glowing Adsterra simulation visualizer -->
+                <div class="w-24 h-24 bg-gradient-to-tr from-pink-500 to-yellow-500 rounded-2xl flex items-center justify-center text-4xl shadow-neon-pink floating-element">
+                    ⚡
+                </div>
+                <div>
+                    <span class="text-[9px] bg-red-500/20 text-red-400 border border-red-500/30 px-2 py-0.5 rounded-md font-bold uppercase tracking-wider">Adsterra Sponsored</span>
+                    <h3 class="text-lg font-bold text-white mt-2" id="ad-sim-title">Earn $100 Daily Playing Games</h3>
+                    <p class="text-xs text-gray-400 mt-1.5 leading-relaxed">সম্পূর্ণ ফ্রিতে মোবাইল গেম খেলুন আর প্রতিদিন লাখ লাখ কয়েন রিয়েল বিকাশে উইথড্র নিন। ইন্সটল বাটনে ক্লিক করলেই একাউন্ট ভেরিফাইড হয়ে যাবে!</p>
+                </div>
+
+                <!-- Fake Progress Bar -->
+                <div class="w-full bg-slate-950/60 p-1.5 rounded-full border border-purple-500/10">
+                    <div id="ad-sim-progress" class="bg-gradient-to-r from-neon-cyan via-purple-500 to-neon-pink h-2 rounded-full transition-all duration-1000" style="width: 0%"></div>
+                </div>
+
+                <!-- Live Countdown -->
+                <p id="ad-sim-countdown-lbl" class="text-xs text-cyan-300 font-bold">এড শেষ হতে বাকি: ৩০ সেকেন্ড</p>
+                
+                <!-- Quick Fast Skip button for testing ONLY -->
+                <button onclick="skipAdTimerDevMode()" class="text-[9px] text-purple-400/50 hover:text-purple-300 border border-purple-500/10 px-2 py-0.5 rounded transition-colors">
+                    [ Dev Mode: ২ সেকেন্ডে শেষ করুন ]
+                </button>
+            </div>
+
+            <!-- Ad Call To Action Bottom Bar -->
+            <div class="bg-purple-950/30 p-4 border-t border-purple-500/15 flex items-center justify-between">
+                <p class="text-[9px] text-gray-400 text-left">এড শেষ না করে ব্যাক বাটনে চাপবেন না।</p>
+                <button id="ad-sim-close-btn" disabled onclick="closeAdsterraSimulation()" class="bg-white/10 text-gray-400 font-bold text-xs px-4 py-2 rounded-xl border border-white/5 cursor-not-allowed">
+                    অপেক্ষা করুন
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CORE LOGIC & SOUND SYNTHESIS -->
+    <script>
+        // WEB AUDIO API SYNTHESIZER FOR MODERN GAME SOUNDS (No external files needed!)
+        const AudioSynth = {
+            ctx: null,
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            play(type) {
+                if (!state.settings.sound) return;
+                this.init();
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+
+                if (type === 'coin') {
+                    // Quick D5 -> A5 sequence
+                    osc.frequency.setValueAtTime(587.33, this.ctx.currentTime); 
+                    osc.frequency.setValueAtTime(880.00, this.ctx.currentTime + 0.1); 
+                    gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.3);
+                } else if (type === 'spin') {
+                    // Fast dropping frequency click
+                    osc.frequency.setValueAtTime(350, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(70, this.ctx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.15);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.15);
+                } else if (type === 'reward') {
+                    // Bright ascending arpeggio C5 -> E5 -> G5 -> C6
+                    const now = this.ctx.currentTime;
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.setValueAtTime(659.25, now + 0.08);
+                    osc.frequency.setValueAtTime(783.99, now + 0.16);
+                    osc.frequency.setValueAtTime(1046.50, now + 0.24);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                    osc.start();
+                    osc.stop(now + 0.45);
+                }
+            }
+        };
+
+        // TELEGRAM MINI APP SDK HOOKS
+        const tg = window.Telegram?.WebApp;
+        let userData = {
+            id: 88776655,
+            first_name: "Galaxy Explorer",
+            username: "galaxy_hero",
+            photo_url: "https://api.dicebear.com/7.x/bottts/svg?seed=GalaxyUser"
+        };
+
+        if (tg) {
+            tg.ready();
+            tg.expand();
+            // Fetch Telegram user info if available
+            if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                const tgUser = tg.initDataUnsafe.user;
+                userData.id = tgUser.id;
+                userData.first_name = tgUser.first_name || "Galaxy Explorer";
+                userData.username = tgUser.username || "galaxy_user";
+                userData.photo_url = tgUser.photo_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${tgUser.id}`;
+            }
+        }
+
+        // APP GLOBAL STATE (Synched with LocalStorage)
+        let state = {
+            coinBalance: 0.0,
+            totalEarned: 0.0,
+            totalWithdrawn: 0.0,
+            pendingWithdrawals: 0,
+            totalSpins: 0,
+            lastDailyClaimDate: null,
+            dailyStreakDay: 0,
+            referrals: [],
+            adsCompleted: 0,
+            vipLevel: "Bronze",
+            sessionEarned: 0.0,
+            settings: {
+                sound: true
+            }
+        };
+
+        // SAVE & LOAD STORAGE FUNCTIONS
+        function saveStateToStorage() {
+            localStorage.setItem('earn_galaxy_v1_state', JSON.stringify(state));
+        }
+
+        function loadStateFromStorage() {
+            const saved = localStorage.getItem('earn_galaxy_v1_state');
+            if (saved) {
+                state = JSON.parse(saved);
+            } else {
+                // Initialize Mock Referrals for demo / UI preview
+                state.referrals = [
+                    { id: 9845321, name: "Arif H.", active: true, earn: 200 },
+                    { id: 7543210, name: "Tanvir S.", active: true, earn: 200 },
+                    { id: 5412984, name: "Farhana Y.", active: false, earn: 0 }
+                ];
+                saveStateToStorage();
+            }
+        }
+
+        // INITIAL STATE SETUP
+        loadStateFromStorage();
+
+        // ROUTER / NAVIGATION SYSTEM
+        function navigateTab(tabName) {
+            // Hide all views
+            document.querySelectorAll('#view-container > section').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            // Remove highlight class from nav tabs
+            document.querySelectorAll('nav button').forEach(btn => {
+                btn.classList.remove('text-neon-cyan', 'shadow-neon-cyan');
+                btn.classList.add('text-gray-400');
+            });
+
+            // Show selected view
+            const activeSection = document.getElementById(`${tabName}-view`);
+            if (activeSection) {
+                activeSection.classList.remove('hidden');
+            }
+
+            // Highlight nav icon
+            const activeNavBtn = document.getElementById(`nav-${tabName}`);
+            if (activeNavBtn) {
+                activeNavBtn.classList.add('text-neon-cyan');
+                activeNavBtn.classList.remove('text-gray-400');
+            }
+
+            // Haptic Feedback (if SDK available)
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.impactOccurred('medium');
+            }
+
+            updateUIVisuals();
+        }
+
+        // Hash Change Listener
+        window.addEventListener('hashchange', () => {
+            const hash = window.location.hash.substring(1) || 'home';
+            if (['home', 'referral', 'wallet'].includes(hash)) {
+                navigateTab(hash);
+            }
+        });
+
+        // UPDATE VIEW COMPONENTS
+        function updateUIVisuals() {
+            // Calculate VIP Level dynamically based on spins
+            if (state.totalSpins >= 100) state.vipLevel = "Legendary";
+            else if (state.totalSpins >= 50) state.vipLevel = "Diamond";
+            else if (state.totalSpins >= 25) state.vipLevel = "Gold";
+            else if (state.totalSpins >= 10) state.vipLevel = "Silver";
+            else state.vipLevel = "Bronze";
+
+            // Header Elements
+            document.getElementById('header-name').innerText = userData.first_name;
+            document.getElementById('header-avatar').src = userData.photo_url;
+            document.getElementById('header-balance').innerText = state.coinBalance.toFixed(2);
+
+            // Home HUD Elements
+            document.getElementById('hud-total-spins').innerText = state.totalSpins;
+            document.getElementById('hud-session-earn').innerText = state.sessionEarned.toFixed(2);
+            document.getElementById('hud-vip-level').innerText = state.vipLevel;
+
+            // Referral Stats Elements
+            const activeRefs = state.referrals.filter(r => r.active).length;
+            const refEarnings = activeRefs * 200;
+            document.getElementById('ref-total').innerText = state.referrals.length;
+            document.getElementById('ref-active').innerText = activeRefs;
+            document.getElementById('ref-earn').innerText = refEarnings + " কয়েন";
+            document.getElementById('referral-input-url').value = `https://yourapp.com/?ref=${userData.id}`;
+
+            // Wallet Overviews
+            document.getElementById('wallet-current-bal').innerText = state.coinBalance.toFixed(2);
+            const bdtEquivalent = (state.coinBalance / 10000) * 5;
+            const usdtEquivalent = bdtEquivalent / 120; // 1 USDT = 120 BDT
+            document.getElementById('wallet-bdt-val').innerText = `সমমূল্য: ≈ ${bdtEquivalent.toFixed(2)} টাকা / ${usdtEquivalent.toFixed(4)} USDT`;
+            document.getElementById('wallet-total-earned').innerText = state.totalEarned.toFixed(2);
+            document.getElementById('wallet-total-withdrawn').innerText = state.totalWithdrawn.toFixed(2);
+            document.getElementById('wallet-pending-reqs').innerText = state.pendingWithdrawals;
+
+            // Checklist requirements for Withdraw requests
+            const reqCoinMet = state.coinBalance >= 10000000;
+            const reqAdMet = state.adsCompleted >= 10;
+            const reqRefMet = activeRefs >= 7;
+
+            const reqCoinSpan = document.getElementById('req-coin-chk');
+            reqCoinSpan.innerText = reqCoinMet ? "✅ সচল" : "❌ অপূর্ণ";
+            reqCoinSpan.className = reqCoinMet ? "text-green-400 font-bold" : "text-red-400 font-bold";
+
+            const reqAdSpan = document.getElementById('req-ad-chk');
+            reqAdSpan.innerText = reqAdMet ? "✅ সচল (১০/১০)" : `❌ অপূর্ণ (${state.adsCompleted}/১০)`;
+            reqAdSpan.className = reqAdMet ? "text-green-400 font-bold" : "text-red-400 font-bold";
+
+            const reqRefSpan = document.getElementById('req-ref-chk');
+            reqRefSpan.innerText = reqRefMet ? "✅ সচল (৭/৭)" : `❌ অপূর্ণ (${activeRefs}/৭)`;
+            reqRefSpan.className = reqRefMet ? "text-green-400 font-bold" : "text-red-400 font-bold";
+
+            // Render Daily Grid
+            renderDailyGrid();
+            // Render Leaderboard list
+            renderLeaderboard();
+        }
+
+        // PROFILE MODAL POPUP ACTIONS
+        function openProfilePopup() {
+            document.getElementById('profile-popup').classList.remove('opacity-0', 'pointer-events-none');
+            // Populate data inside Profile Popup
+            document.getElementById('profile-modal-name').innerText = userData.first_name;
+            document.getElementById('profile-modal-username').innerText = "@" + userData.username;
+            document.getElementById('profile-modal-avatar').src = userData.photo_url;
+            document.getElementById('profile-modal-id').innerText = userData.id;
+            document.getElementById('profile-modal-total-earned').innerText = state.totalEarned.toFixed(2);
+            const activeRefsCount = state.referrals.filter(r => r.active).length;
+            document.getElementById('profile-modal-ref-count').innerText = activeRefsCount;
+            document.getElementById('profile-modal-spin-count').innerText = state.totalSpins + " বার";
+            document.getElementById('profile-modal-vip-badge').innerText = state.vipLevel;
+
+            if (tg?.HapticFeedback) {
+                tg.HapticFeedback.notificationOccurred('success');
+            }
+        }
+
+        function closeProfilePopup() {
+            document.getElementById('profile-popup').classList.add('opacity-0', 'pointer-events-none');
+        }
+
+        // CLAIM DAILY REWARDS FLOW
+        function renderDailyGrid() {
+            const gridContainer = document.getElementById('daily-grid');
+            gridContainer.innerHTML = '';
+            
+            const rewards = [10, 20, 30, 40, 50, 100, 200];
+            const today = new Date().toDateString();
+
+            for (let i = 0; i < 7; i++) {
+                const dayNum = i + 1;
+                const isClaimed = state.dailyStreakDay >= dayNum;
+                const isNext = (state.dailyStreakDay + 1) === dayNum && state.lastDailyClaimDate !== today;
+
+                let btnStyles = "bg-purple-950/20 text-gray-500 border-purple-500/5 cursor-not-allowed";
+                let btnAction = "";
+
+                if (isClaimed) {
+                    btnStyles = "bg-green-500/20 text-green-400 border-green-500/30";
+                    btnAction = "disabled";
+                } else if (isNext) {
+                    btnStyles = "bg-gradient-to-tr from-cyan-600 to-purple-600 text-white border-cyan-500/30 shadow-neon-cyan animate-pulse";
+                    btnAction = `onclick="claimDailyReward(${dayNum}, ${rewards[i]})"`;
+                }
+
+                gridContainer.innerHTML += `
+                    <button ${btnAction} class="p-2 border rounded-xl flex flex-col items-center justify-center transition-all ${btnStyles}">
+                        <span class="text-[8px] font-bold">Day ${dayNum}</span>
+                        <span class="text-[14px] my-0.5">💎</span>
+                        <span class="text-[10px] font-extrabold">${rewards[i]} C</span>
+                    </button>
+                `;
+            }
+        }
+
+        function claimDailyReward(dayNum, rewardAmount) {
+            const today = new Date().toDateString();
+            state.dailyStreakDay = dayNum;
+            state.lastDailyClaimDate = today;
+            state.coinBalance += rewardAmount;
+            state.totalEarned += rewardAmount;
+            
+            saveStateToStorage();
+            AudioSynth.play('reward');
+            showToastAlert("ডেইলি রিওয়ার্ড!", `অভিনন্দন! আপনি আজকের ${rewardAmount} কয়েন ক্লেইম করেছেন।`, "success");
+            updateUIVisuals();
+        }
+
+        // COPY REFERRAL LINK TO CLIPBOARD
+        function copyReferralLink() {
+            const refInput = document.getElementById('referral-input-url');
+            refInput.select();
+            refInput.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(refInput.value);
+
+            showToastAlert("লিংক কপিড!", "আপনার ইউনিক রেফারেল লিংকটি ক্লিপবোর্ডে কপি করা হয়েছে।", "success");
+        }
+
+        // SHARE REFERRAL ON TELEGRAM
+        function shareOnTelegram() {
+            const text = encodeURIComponent(`⚡ Earn Galaxy অ্যাপে জয়েন করুন! প্রতি স্পিনে আর্ন করুন রিওয়ার্ড কয়েন। আমার রেফারেল লিংক ব্যবহার করুন: https://yourapp.com/?ref=${userData.id}`);
+            const telegramUrl = `https://t.me/share/url?url=${text}`;
+            if (tg) {
+                tg.openTelegramLink(telegramUrl);
+            } else {
+                window.open(telegramUrl, '_blank');
+            }
+        }
+
+        function toggleQRCode() {
+            const qrBox = document.getElementById('qr-code-box');
+            qrBox.classList.toggle('hidden');
+        }
+
+        // LEADERBOARD RENDERER
+        function renderLeaderboard() {
+            const list = document.getElementById('leaderboard-ref-list');
+            list.innerHTML = '';
+            const simulatedUsers = [
+                { name: "Sajid_07", refCount: 42, icon: "🌌" },
+                { name: "ZubairGalaxy", refCount: 29, icon: "👽" },
+                { name: "MoonLight99", refCount: 18, icon: "🪐" }
+            ];
+
+            simulatedUsers.forEach((user, index) => {
+                list.innerHTML += `
+                    <div class="flex items-center justify-between bg-purple-950/20 px-3.5 py-2.5 rounded-xl border border-purple-500/5">
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-xs font-bold text-cyan-400">#${index + 1}</span>
+                            <span class="text-sm">${user.icon}</span>
+                            <span class="text-xs font-bold text-white">${user.name}</span>
+                        </div>
+                        <span class="text-xs text-neon-pink font-extrabold">${user.refCount} রেফ</span>
+                    </div>
+                `;
+            });
+        }
+
+        // POPULAR TOAST SYSTEM
+        function showToastAlert(title, message, type = "info") {
+            const toast = document.getElementById('toast-notification');
+            const toastTitle = document.getElementById('toast-title');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastTitle.innerText = title;
+            toastMsg.innerText = message;
+
+            if (type === "success") {
+                toastIcon.className = "p-2 bg-emerald-900/50 rounded-lg text-emerald-400";
+            } else {
+                toastIcon.className = "p-2 bg-cyan-900/50 rounded-lg text-neon-cyan";
+            }
+
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-[-20px]');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 3000);
+        }
+
+        // SOUND CONTROL SWITCHER
+        function toggleSoundSetting() {
+            state.settings.sound = !state.settings.sound;
+            saveStateToStorage();
+            
+            const btn = document.getElementById('btn-sound-toggle');
+            if (state.settings.sound) {
+                btn.innerText = "সক্ষম (ON)";
+                btn.className = "bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 px-3 py-1 rounded-xl text-xs font-bold";
+                AudioSynth.init();
+                AudioSynth.play('coin');
+            } else {
+                btn.innerText = "অক্ষম (OFF)";
+                btn.className = "bg-red-500/20 text-red-400 border border-red-500/30 px-3 py-1 rounded-xl text-xs font-bold";
+            }
+        }
+
+        // LAUNCH ADSTERRA SIMULATION ENGINE
+        let adCycleTimer = null;
+        let adSecondsLeft = 0;
+        let activeAdCallback = null;
+
+        function simulateAdClick(adId) {
+            triggerAdSimulation(10, `Adsterra Sponsored Reward Link: #${adId}`, () => {
+                const earned = 5.0; // Ad completion rewards
+                state.coinBalance += earned;
+                state.totalEarned += earned;
+                state.adsCompleted += 1;
+                saveStateToStorage();
+                updateUIVisuals();
+                AudioSynth.play('reward');
+                showToastAlert("রিয়েল রিওয়ার্ড!", `এড সম্পূর্ণ দেখার জন্য ৫ কয়েন আপনার ওয়ালেটে যুক্ত হয়েছে।`, "success");
+            });
+        }
+
+        function triggerAdSimulation(duration, adTitle, callback) {
+            document.getElementById('ad-simulation-overlay').classList.remove('opacity-0', 'pointer-events-none');
+            document.getElementById('ad-sim-title').innerText = adTitle;
+            
+            adSecondsLeft = duration;
+            activeAdCallback = callback;
+            
+            const closeBtn = document.getElementById('ad-sim-close-btn');
+            closeBtn.disabled = true;
+            closeBtn.classList.add('cursor-not-allowed', 'bg-white/10');
+            closeBtn.innerText = "অপেক্ষা করুন";
+
+            updateAdCountdownUI();
+
+            adCycleTimer = setInterval(() => {
+                adSecondsLeft -= 1;
+                updateAdCountdownUI();
+
+                if (adSecondsLeft <= 0) {
+                    clearInterval(adCycleTimer);
+                    enableAdCloseButton();
+                }
+            }, 1000);
+        }
+
+        function updateAdCountdownUI() {
+            const countLbl = document.getElementById('ad-sim-countdown-lbl');
+            const progress = document.getElementById('ad-sim-progress');
+            
+            countLbl.innerText = `এড শেষ হতে বাকি: ${adSecondsLeft} সেকেন্ড`;
+            
+            // Progress percentage
+            const total = 30; // Max default
+            const pct = ((total - adSecondsLeft) / total) * 100;
+            progress.style.width = `${pct}%`;
+        }
+
+        function skipAdTimerDevMode() {
+            clearInterval(adCycleTimer);
+            adSecondsLeft = 0;
+            enableAdCloseButton();
+        }
+
+        function enableAdCloseButton() {
+            const closeBtn = document.getElementById('ad-sim-close-btn');
+            closeBtn.disabled = false;
+            closeBtn.classList.remove('cursor-not-allowed', 'bg-white/10');
+            closeBtn.classList.add('bg-cyan-500', 'text-slate-950', 'active:scale-95');
+            closeBtn.innerText = "ক্লেইম রিওয়ার্ড";
+
+            // If in Auto-Spin Mode, auto-claim after 1 second!
+            if (isAutoSpinRunning) {
+                setTimeout(() => {
+                    closeAdsterraSimulation();
+                }, 1000);
+            }
+        }
+
+        function closeAdsterraSimulation() {
+            document.getElementById('ad-simulation-overlay').classList.add('opacity-0', 'pointer-events-none');
+            
+            if (activeAdCallback) {
+                activeAdCallback();
+                activeAdCallback = null;
+            }
+        }
+
+        // ==========================================
+        // AUTO SPIN ROTATION MACHINE
+        // ==========================================
+        let isAutoSpinRunning = false;
+        let spinCycleInterval = null;
+
+        function startAutoSpinLoop() {
+            if (isAutoSpinRunning) return;
+            isAutoSpinRunning = true;
+            
+            document.getElementById('btn-spin-start').disabled = true;
+            document.getElementById('btn-spin-start').classList.add('opacity-50');
+            document.getElementById('btn-spin-stop').disabled = false;
+
+            document.getElementById('auto-spin-badge').classList.remove('bg-red-500');
+            document.getElementById('auto-spin-badge').classList.add('bg-green-500');
+            document.getElementById('auto-spin-status-lbl').innerText = "অটো স্পিন রানিং";
+            document.getElementById('auto-spin-status-lbl').className = "text-[10px] text-green-400 font-bold uppercase tracking-wider";
+
+            // Run first loop
+            runSingleAutoSpinCycle();
+        }
+
+        function stopAutoSpinLoop() {
+            isAutoSpinRunning = false;
+            
+            document.getElementById('btn-spin-start').disabled = false;
+            document.getElementById('btn-spin-start').classList.remove('opacity-50');
+            document.getElementById('btn-spin-stop').disabled = true;
+
+            document.getElementById('auto-spin-badge').classList.remove('bg-green-500');
+            document.getElementById('auto-spin-badge').classList.add('bg-red-500');
+            document.getElementById('auto-spin-status-lbl').innerText = "অটো স্পিন বন্ধ";
+            document.getElementById('auto-spin-status-lbl').className = "text-[10px] text-red-400 font-bold uppercase tracking-wider";
+
+            showToastAlert("অটো স্পিন স্টপ!", "অটো স্পিন লুপটি সফলভাবে বন্ধ করা হয়েছে।");
+        }
+
+        function runSingleAutoSpinCycle() {
+            if (!isAutoSpinRunning) return;
+
+            // Step 1: Trigger Ad Link Simulation (30 Seconds as requested)
+            triggerAdSimulation(30, "Adsterra Auto-Spin Direct Partner Link", () => {
+                // Step 2: Once Ad closes, Auto-Spin Wheel and force Reward (0.01 Coins)
+                executePhysicalWheelSpin(0, () => {
+                    // Step 3: Wait 2.5 seconds cooldown and repeat next cycle
+                    if (isAutoSpinRunning) {
+                        setTimeout(() => {
+                            runSingleAutoSpinCycle();
+                        }, 2500);
+                    }
+                });
+            });
+        }
+
+        function executePhysicalWheelSpin(targetSliceIndex = 0, callback) {
+            const wheelElement = document.getElementById('wheel-svg-element');
+            
+            // Audio sound effect loop during spin
+            let audioTicks = setInterval(() => {
+                AudioSynth.play('spin');
+            }, 180);
+
+            // Calculation: 10 slices of 36 deg each. 
+            // Target index 0 is at 0-36 deg. Center of slice is 18 deg.
+            // Pointer is at top (90 deg counterclockwise relative to normal 0).
+            const rotations = 6; // spins 6 full circles before stopping
+            const finalDegrees = (360 * rotations) - (targetSliceIndex * 36) - 18;
+
+            wheelElement.style.transition = "transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)";
+            wheelElement.style.transform = `rotate(${finalDegrees}deg)`;
+
+            setTimeout(() => {
+                clearInterval(audioTicks);
+                AudioSynth.play('reward');
+
+                // Reward Calculation based on slice (Slice 0 is strictly 0.01)
+                const reward = 0.01;
+                state.coinBalance += reward;
+                state.totalEarned += reward;
+                state.totalSpins += 1;
+                state.sessionEarned += reward;
+                
+                saveStateToStorage();
+                updateUIVisuals();
+                
+                showToastAlert("+০.০১ কয়েন রিওয়ার্ড!", "স্পিন হুইল আর্নিং আপনার ওয়ালেটে ক্লেইম করা হয়েছে।", "success");
+                
+                // Reset wheel position instantly for next rotations without transition glitch
+                setTimeout(() => {
+                    wheelElement.style.transition = "none";
+                    wheelElement.style.transform = `rotate(${finalDegrees % 360}deg)`;
+                    if (callback) callback();
+                }, 500);
+
+            }, 4000);
+        }
+
+        // ==========================================
+        // WALLET CONVERTER / EXCHANGE SYSTEM
+        // ==========================================
+        let exchangeInput = document.getElementById('exchange-coins-input');
+        let exchangePreview = document.getElementById('exchange-bdt-preview');
+
+        exchangeInput.addEventListener('input', () => {
+            const val = parseFloat(exchangeInput.value) || 0;
+            const bdt = (val / 10000) * 5;
+            exchangePreview.innerText = `${bdt.toFixed(2)} ৳`;
+            document.getElementById('exchange-error-msg').innerText = '';
+        });
+
+        function startExchangeCycle() {
+            const coinsToExchange = parseFloat(exchangeInput.value) || 0;
+            if (coinsToExchange < 10000) {
+                document.getElementById('exchange-error-msg').innerText = "মিনিমাম ১০,০০০ কয়েন এক্সচেঞ্জ করতে হবে।";
+                return;
+            }
+            if (state.coinBalance < coinsToExchange) {
+                document.getElementById('exchange-error-msg').innerText = "আপনার ওয়ালেটে পর্যাপ্ত কয়েন ব্যালেন্স নেই।";
+                return;
+            }
+
+            // Start 5 Sequential Ad cycles (20s + 20s each)
+            showToastAlert("এক্সচেঞ্জ সিকোয়েন্স!", "কয়েন কনভার্ট করতে ৫টি সিকোয়েন্সিয়াল এড কমপ্লিট করুন।", "info");
+            
+            let completedAdCycles = 0;
+            
+            function runSequentialAdLoop() {
+                completedAdCycles += 1;
+                triggerAdSimulation(20, `Coins Exchange Ad Cycle (${completedAdCycles}/5)`, () => {
+                    if (completedAdCycles < 5) {
+                        setTimeout(() => {
+                            runSequentialAdLoop();
+                        }, 1000);
+                    } else {
+                        // All cycles finished - process exchange
+                        const finalBdt = (coinsToExchange / 10000) * 5;
+                        state.coinBalance -= coinsToExchange;
+                        state.totalEarned -= coinsToExchange; // Adjust tracker
+                        // Simulate cash out adding directly to conversion log
+                        saveStateToStorage();
+                        updateUIVisuals();
+                        exchangeInput.value = '';
+                        exchangePreview.innerText = '০.০০ ৳';
+                        showToastAlert("কনভার্ট সাকসেস!", `${coinsToExchange} কয়েন সফলভাবে ${finalBdt} টাকায় কনভার্ট হয়েছে।`, "success");
+                    }
+                });
+            }
+
+            runSequentialAdLoop();
+        }
+
+        // ==========================================
+        // REAL WITHDRAWAL SYSTEM MODAL FLOW
+        // ==========================================
+        let selectedMethod = '';
+
+        function selectWithdrawMethod(method) {
+            selectedMethod = method;
+            document.querySelectorAll('[id^="method-"]').forEach(btn => {
+                btn.className = "py-2.5 rounded-xl text-xs font-bold border border-purple-500/20 bg-purple-950/20 text-gray-300 hover:bg-purple-900/30 transition-all";
+            });
+
+            const activeBtn = document.getElementById(`method-${method}`);
+            if (activeBtn) {
+                activeBtn.className = "py-2.5 rounded-xl text-xs font-bold border border-neon-pink bg-purple-900/50 text-white shadow-neon-pink";
+            }
+        }
+
+        function submitWithdrawRequest() {
+            const addr = document.getElementById('withdraw-address').value;
+            const amount = parseFloat(document.getElementById('withdraw-amount').value) || 0;
+            const activeRefs = state.referrals.filter(r => r.active).length;
+
+            if (!selectedMethod) {
+                showToastAlert("ভুল হয়েছে!", "অনুগ্রহ করে বিকাশ, নগদ বা USDT ওয়ালেট পদ্ধতি নির্বাচন করুন।");
+                return;
+            }
+            if (!addr) {
+                showToastAlert("ভুল হয়েছে!", "অনুগ্রহ করে উইথড্র মোবাইল নাম্বার বা ওয়ালেট এড্রেস লিখুন।");
+                return;
+            }
+            if (amount < 10000000) {
+                showToastAlert("ভুল হয়েছে!", "মিনিমাম উইথড্র ১০,০০০,০০০ কয়েন লাগবেন!");
+                return;
+            }
+            if (state.coinBalance < amount) {
+                showToastAlert("ভুল হয়েছে!", "আপনার ওয়ালেটে এই পরিমানে ব্যালেন্স নেই।");
+                return;
+            }
+            if (state.adsCompleted < 10 || activeRefs < 7) {
+                showToastAlert("ভুল হয়েছে!", "ওয়ালেট উইথড্রয়াল রিকোয়ারমেন্ট পূরণ হয়নি!");
+                return;
+            }
+
+            // Start 15s + 15s sequential ads with manual click validation
+            showToastAlert("উইথড্র সিকোয়েন্স!", "উইথড্র রিকোয়েস্ট করতে ১৫সে + ১৫সে সিকোয়েন্সিয়াল এড কমপ্লিট করুন।", "info");
+            
+            triggerAdSimulation(15, "Withdraw Verification Ad Part-1", () => {
+                showToastAlert("পার্ট-১ শেষ!", "২য় পার্ট শুরু করতে নিচের বাটন এ ক্লিক করুন।", "info");
+                
+                setTimeout(() => {
+                    triggerAdSimulation(15, "Withdraw Verification Ad Part-2", () => {
+                        // Complete withdrawal
+                        state.coinBalance -= amount;
+                        state.totalWithdrawn += amount;
+                        state.pendingWithdrawals += 1;
+                        
+                        saveStateToStorage();
+                        updateUIVisuals();
+
+                        // Reset fields
+                        document.getElementById('withdraw-address').value = '';
+                        document.getElementById('withdraw-amount').value = '';
+                        
+                        showToastAlert("অনুরোধ সফল!", "আপনার উইথড্র রিকোয়েস্ট পেন্ডিং অবস্থায় সিস্টেমে জমা হয়েছে। ২৪ ঘণ্টার মধ্যে পেমেন্ট পাবেন!", "success");
+                    });
+                }, 1000);
+            });
+        }
+
+        // ==========================================
+        // MILESTONES CLAIMS
+        // ==========================================
+        function claimMilestone(targetRef, reward) {
+            const activeRefsCount = state.referrals.filter(r => r.active).length;
+            if (activeRefsCount < targetRef) {
+                showToastAlert("সীমাবদ্ধতা!", `আপনার পর্যাপ্ত ভ্যালিড রেফার নেই। (${activeRefsCount}/${targetRef})`);
+                return;
+            }
+
+            state.coinBalance += reward;
+            state.totalEarned += reward;
+            
+            const btn = document.getElementById(`milestone-btn-${targetRef}`);
+            btn.disabled = true;
+            btn.innerText = "ক্লেমড";
+            btn.className = "bg-green-500/10 text-green-400 border border-green-500/20 text-xs px-3 py-1.5 rounded-lg cursor-not-allowed";
+
+            saveStateToStorage();
+            AudioSynth.play('reward');
+            showToastAlert("মাইলস্টোন বোনাস!", `অভিনন্দন! আপনি ${reward} বোনাস কয়েন ক্লেইম করেছেন।`, "success");
+            updateUIVisuals();
+        }
+
+        // ==========================================
+        // LAUNCH LUCKY MYSTERY BOX RANDOM TIMERS
+        // ==========================================
+        let mysteryBoxReady = true;
+
+        function claimMysteryBox() {
+            if (!mysteryBoxReady) {
+                showToastAlert("অপেক্ষা করুন!", "পরবর্তী মিস্ট্রি বক্স ৩ ঘণ্টা পর রেডি হবে।");
+                return;
+            }
+
+            // Simulating Ad link click before open box
+            triggerAdSimulation(10, "Adsterra Mystery Reward Unlock Code", () => {
+                const randomBonus = Math.floor(Math.random() * 50) + 10; // 10 to 60 Coins
+                state.coinBalance += randomBonus;
+                state.totalEarned += randomBonus;
+                saveStateToStorage();
+                
+                // Set Timer Cooldown
+                mysteryBoxReady = false;
+                document.getElementById('btn-mystery-box').disabled = true;
+                document.getElementById('btn-mystery-box').classList.add('opacity-50', 'cursor-not-allowed');
+                document.getElementById('btn-mystery-box').innerText = "লকড";
+                document.getElementById('mystery-box-timer').innerText = "পরবর্তী বক্স রিচার্জ হচ্ছে...";
+
+                AudioSynth.play('reward');
+                showToastAlert("মিস্ট্রি রিওয়ার্ড!", `লাকি বক্স থেকে আপনি ${randomBonus} কয়েন ফ্রি পেয়েছেন!`, "success");
+                updateUIVisuals();
+            });
+        }
+
+        // INITIALIZE APP LOGIC
+        window.location.hash = '#home';
+        navigateTab('home');
+
+    </script>
+</body>
+</html>
